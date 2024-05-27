@@ -6,33 +6,33 @@ WITH data_mart AS
 (
   -- Memilih data yang dibutuhkan dari gabungan antara tabel 'kf_final_transaction', 'kf_kantor_cabang', dan 'kf_product'
   SELECT 
-  ft.transaction_id,                  -- ID transaksi
-  ft.date,                            -- Tanggal transaksi
-  ft.branch_id,                       -- ID cabang
-  kc.branch_name,                     -- Nama cabang
-  kc.kota,                            -- Kota cabang
-  kc.provinsi,                        -- Provinsi cabang
-  kc.rating AS rating_cabang,         -- Rating cabang
-  ft.customer_name,                   -- Nama pelanggan
-  ft.product_id,                      -- ID produk
-  p.product_name,                     -- Nama produk
-  ft.price AS actual_price,           -- Harga asli produk
-  ft.discount_percentage,             -- Persentase diskon
+    ft.transaction_id,                  -- ID transaksi
+    ft.date,                            -- Tanggal transaksi
+    ft.branch_id,                       -- ID cabang
+    kc.branch_name,                     -- Nama cabang
+    kc.kota,                            -- Kota cabang
+    kc.provinsi,                        -- Provinsi cabang
+    kc.rating AS rating_cabang,         -- Rating cabang
+    ft.customer_name,                   -- Nama pelanggan
+    ft.product_id,                      -- ID produk
+    p.product_name,                     -- Nama produk
+    ft.price AS actual_price,           -- Harga asli produk
+    ft.discount_percentage,             -- Persentase diskon
   
-  -- Menghitung persentase gross laba berdasarkan rentang harga
-  CASE
-    WHEN ft.price <= 50000 THEN 0.1
-    WHEN ft.price > 50000 AND ft.price <= 100000 THEN 0.15
-    WHEN ft.price > 100000 AND ft.price <= 300000 THEN 0.2
-    WHEN ft.price > 300000 AND ft.price <= 500000 THEN 0.25
-    ELSE 0.3
-  END AS percentase_gross_laba,
+    -- Menghitung persentase gross laba berdasarkan rentang harga
+    CASE
+      WHEN ft.price <= 50000 THEN 0.1
+      WHEN ft.price > 50000 AND ft.price <= 100000 THEN 0.15
+      WHEN ft.price > 100000 AND ft.price <= 300000 THEN 0.2
+      WHEN ft.price > 300000 AND ft.price <= 500000 THEN 0.25
+      ELSE 0.3
+    END AS percentase_gross_laba,
   
-  -- Menghitung penjualan bersih setelah diskon
-  (ft.price - (ft.price * ft.discount_percentage)) AS nett_sales,
-  ft.rating AS rating_transaksi       -- Rating transaksi
+    -- Menghitung penjualan bersih setelah diskon
+    (ft.price - (ft.price * ft.discount_percentage)) AS nett_sales,
+    ft.rating AS rating_transaksi       -- Rating transaksi
   FROM 
-  `kimia_farma.kf_final_transaction` AS ft
+    `kimia_farma.kf_final_transaction` AS ft
 
   -- Melakukan LEFT JOIN dengan tabel 'kf_kantor_cabang' untuk mendapatkan detail kantor cabang 
   LEFT JOIN `kimia_farma.kf_kantor_cabang` AS kc ON ft.branch_id = kc.branch_id
