@@ -31,14 +31,14 @@ WITH data_mart AS
   -- Menghitung penjualan bersih setelah diskon
   (ft.price - (ft.price * ft.discount_percentage)) AS nett_sales,
   ft.rating AS rating_transaksi       -- Rating transaksi
-FROM 
+  FROM 
   `kimia_farma.kf_final_transaction` AS ft
 
--- Melakukan LEFT JOIN dengan tabel 'kf_kantor_cabang' untuk mendapatkan detail kantor cabang 
-LEFT JOIN `kimia_farma.kf_kantor_cabang` AS kc ON ft.branch_id = kc.branch_id
+  -- Melakukan LEFT JOIN dengan tabel 'kf_kantor_cabang' untuk mendapatkan detail kantor cabang 
+  LEFT JOIN `kimia_farma.kf_kantor_cabang` AS kc ON ft.branch_id = kc.branch_id
 
--- Melakukan LEFT JOIN dengan tabel 'kf_product' untuk mendapatkan detail product
-LEFT JOIN `kimia_farma.kf_product` AS p ON ft.product_id = p.product_id
+  -- Melakukan LEFT JOIN dengan tabel 'kf_product' untuk mendapatkan detail product
+  LEFT JOIN `kimia_farma.kf_product` AS p ON ft.product_id = p.product_id
 )
 
 -- Memilih data yang telah diproses dari CTE 'data_mart' dan menghapus duplikat
