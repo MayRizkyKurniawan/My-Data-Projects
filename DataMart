@@ -1,0 +1,64 @@
+-- Membuat tabel baru 'kf_final_data_mart' pada dataset kimia_farma menggunakan hasil dari subquery dengan CTE 'data_mart'
+CREATE TABLE `kimia_farma.kf_final_data_mart` AS
+
+-- Memulai CTE bernama 'data_mart'
+WITH data_mart AS
+(
+  -- Memilih data yang dibutuhkan dari gabungan antara tabel 'kf_final_transaction', 'kf_kantor_cabang', dan 'kf_product'
+  SELECT 
+  ft.transaction_id,                  -- ID transaksi
+  ft.date,                            -- Tanggal transaksi
+  ft.branch_id,                       -- ID cabang
+  kc.branch_name,                     -- Nama cabang
+  kc.kota,                            -- Kota cabang
+  kc.provinsi,                        -- Provinsi cabang
+  kc.rating AS rating_cabang,         -- Rating cabang
+  ft.customer_name,                   -- Nama pelanggan
+  ft.product_id,                      -- ID produk
+  p.product_name,                     -- Nama produk
+  ft.price AS actual_price,           -- Harga asli produk
+  ft.discount_percentage,             -- Persentase diskon
+  
+  -- Menghitung persentase gross laba berdasarkan rentang harga
+  CASE
+    WHEN ft.price <= 50000 THEN 0.1
+    WHEN ft.price > 50000 AND ft.price <= 100000 THEN 0.15
+    WHEN ft.price > 100000 AND ft.price <= 300000 THEN 0.2
+    WHEN ft.price > 300000 AND ft.price <= 500000 THEN 0.25
+    ELSE 0.3
+  END AS percentase_gross_laba,
+  
+  -- Menghitung penjualan bersih setelah diskon
+  (ft.price - (ft.price * ft.discount_percentage)) AS nett_sales,
+  ft.rating AS rating_transaksi       -- Rating transaksi
+FROM 
+  `kimia_farma.kf_final_transaction` AS ft
+
+-- Melakukan LEFT JOIN dengan tabel 'kf_kantor_cabang' untuk mendapatkan detail kantor cabang 
+LEFT JOIN `kimia_farma.kf_kantor_cabang` AS kc ON ft.branch_id = kc.branch_id
+
+-- Melakukan LEFT JOIN dengan tabel 'kf_product' untuk mendapatkan detail product
+LEFT JOIN `kimia_farma.kf_product` AS p ON ft.product_id = p.product_id
+)
+
+-- Memilih data yang telah diproses dari CTE 'data_mart' dan menghapus duplikat
+SELECT DISTINCT
+  dm.transaction_id,                  -- ID transaksi
+  dm.date,                            -- Tanggal transaksi
+  dm.branch_id,                       -- ID cabang
+  dm.branch_name,                     -- Nama cabang
+  dm.kota,                            -- Kota cabang
+  dm.provinsi,                        -- Provinsi cabang
+  dm.rating_cabang,                   -- Rating cabang
+  dm.customer_name,                   -- Nama pelanggan
+  dm.product_id,                      -- ID produk
+  dm.product_name,                    -- Nama produk
+  dm.actual_price,                    -- Harga asli produk
+  dm.discount_percentage,             -- Persentase diskon
+  dm.percentase_gross_laba,           -- Persentase gross laba
+  dm.nett_sales,                      -- Penjualan bersih setelah diskon
+
+  -- Menghitung laba bersih
+  (dm.nett_sales * dm.percentase_gross_laba) AS nett_profit,
+  dm.rating_transaksi                 -- Rating transaksi
+FROM data_mart AS dm                  -- Mengambil data dari CTE 'data_mart'
